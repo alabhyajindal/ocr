@@ -1,5 +1,5 @@
 const tesseract = require('node-tesseract-ocr')
-const Jimp = require('jimp')
+const sharp = require('sharp')
 
 const IMAGE_PATH = process.argv[2] || './image1.jpg'
 
@@ -9,31 +9,34 @@ const config = {
   psm: 3,
 }
 
-function cropAnswers() {
-  return Jimp.read(IMAGE_PATH)
-    .then((image) => {
-      const croppedWidth = image.getWidth() * 0.6 // Keep the first 60% width
-      const croppedImage = image.crop(0, 0, croppedWidth, image.getHeight())
-      return croppedImage.writeAsync('./answers.jpg')
+async function cropAnswers() {
+  const metadata = await sharp(IMAGE_PATH).metadata()
+  sharp(IMAGE_PATH)
+    .extract({
+      left: metadata.width * 0.7,
+      top: 0,
+      width: Math.round(metadata.width * 0.3),
+      height: metadata.height,
     })
-    .then(() => console.log('Image cropped successfully!'))
-    .catch((err) => console.error('Error:', err))
+    .toFile('./answers.jpg', (err, info) => {
+      if (err) console.error(err)
+    })
 }
 
+cropAnswers()
+
 async function cropQuestions() {
-  try {
-    const image = await Jimp.read(IMAGE_PATH)
-
-    const { width, height } = image.bitmap
-
-    const newWidth = Math.floor(width * 0.2)
-    const newHeight = height
-
-    const croppedImage = image.crop(0, 0, newWidth, newHeight)
-    await croppedImage.writeAsync('./questions.jpg')
-  } catch (error) {
-    console.error('Error:', error.message)
-  }
+  const metadata = await sharp(IMAGE_PATH).metadata()
+  sharp(IMAGE_PATH)
+    .extract({
+      left: 0,
+      top: 0,
+      width: Math.round(metadata.width * 0.2),
+      height: metadata.height,
+    })
+    .toFile('./questions.jpg', (err, info) => {
+      if (err) console.error(err)
+    })
 }
 
 function getQuestionNumbers(text) {
@@ -52,14 +55,14 @@ function getQuestionNumbers(text) {
     .sort((a, b) => a - b)
 }
 
-const questions = cropQuestions().then(() => {
-  tesseract
-    .recognize('./questions.jpg', config)
-    .then((text) => {
-      const questionNumbers = getQuestionNumbers(text)
-      console.log(questionNumbers)
-    })
-    .catch((error) => {
-      console.log(error.message)
-    })
-})
+// cropQuestions().then(() => {
+//   tesseract
+//     .recognize('./questions.jpg', config)
+//     .then((text) => {
+//       const questionNumbers = getQuestionNumbers(text)
+//       console.log(questionNumbers)
+//     })
+//     .catch((error) => {
+//       console.log(error.message)
+//     })
+// })
