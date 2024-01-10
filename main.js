@@ -23,7 +23,7 @@ async function cropAnswers() {
     })
 }
 
-cropAnswers()
+// cropAnswers()
 
 async function cropQuestions() {
   const metadata = await sharp(IMAGE_PATH).metadata()
@@ -55,14 +55,14 @@ function getQuestionNumbers(text) {
     .sort((a, b) => a - b)
 }
 
-// cropQuestions().then(() => {
-//   tesseract
-//     .recognize('./questions.jpg', config)
-//     .then((text) => {
-//       const questionNumbers = getQuestionNumbers(text)
-//       console.log(questionNumbers)
-//     })
-//     .catch((error) => {
-//       console.log(error.message)
-//     })
-// })
+cropQuestions().then(() => {
+  tesseract
+    .recognize('./questions.jpg', config)
+    .then((text) => {
+      const questionNumbers = getQuestionNumbers(text)
+      console.log(questionNumbers)
+    })
+    .catch((error) => {
+      console.log(error.message)
+    })
+})
